@@ -39,7 +39,6 @@ def get_prediction(img_data, catcher):
     else:
         while type(prediction) != str:
             prediction = first_true(prediction)
-
         return prediction
 
 
