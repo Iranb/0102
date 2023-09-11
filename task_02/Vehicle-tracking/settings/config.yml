@@ -1,0 +1,40 @@
+device: 'cuda:0'
+
+#deepsort
+config_deepsort: /home/hyq/code/comp/task_02/Vehicle-tracking/settings/deep_sort.yaml
+deep_sort_weights: /home/hyq/code/comp/task_02/Vehicle-tracking/models/ckpt.t7
+
+#yolo
+yolo_weights: /home/hyq/code/comp/task_02/Vehicle-tracking/models/yolov5s.pt
+agnostic_nms: false
+augment: false
+classes: [1, 2, 3, 5, 7]
+conf_thres: 0.35
+imgsz:
+- 640
+iou_thres: 0.5
+max_det: 1000
+dnn: false
+evaluate: false
+half: false
+visualize: false
+
+#in-out
+fourcc: mp4v
+source: /home/hyq/code/comp/dataset/prestige/H4V-贵A1ZM03.avi #../../videos/cut3.avi
+output: output
+save_csv: false
+save_txt: True
+save_vid: true
+show_vid: false
+#lines zones
+upper_ratio: 0.4
+lower_ratio: 0.9231
+
+#DB
+upload_db: false
+
+#deep_sort_pytorch/configs/deep_sort.yaml
+#../settings/deep_sort.yaml
+#../../video_nhax_cut_resize2.mp4
+#deep_sort_weights: deep_sort_pytorch/deep_sort/deep/checkpoint/ckpt.t7

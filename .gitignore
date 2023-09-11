@@ -1,0 +1,8 @@
+dataset/
+utiles/
+application/
+task_02/Vehicle-tracking/application/
+task_02/Vehicle-tracking/videos
+videos/
+*.avigit 
+task_02/Vehicle-tracking/car_plot/output/
