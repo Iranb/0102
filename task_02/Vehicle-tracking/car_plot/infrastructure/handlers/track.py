@@ -186,13 +186,12 @@ class Tracker:
                     confs = torch.tensor(confs)
                     clss = torch.tensor(clss)
 
+                    # NOTE DeepSort 模型推理
                     outputs = deepsort.update(xywhs.cpu(), confs.cpu(), clss.cpu(), im0)
-                    
-                    # Detect Car License
+                    print(outputs)
+                    # NOTE 检测车牌信息
                     licenses = self.detect_car_license(im0s)
-
-
-
+                    print(licenses)
 
                     current_frame = {}
                     current_frame['time'] = datetime.now()
@@ -303,7 +302,7 @@ class Tracker:
         """
             TODO
         """
-        
+
         return None
 
     def detect_car_license(self, img):
