@@ -21,7 +21,7 @@ visualize: false
 
 #in-out
 fourcc: mp4v
-source: /home/hyq/code/comp/dataset/prestige/H4V-贵A1ZM03.avi #../../videos/cut3.avi
+source: /home/hyq/code/comp/dataset/prestige/H4V-贵A1ZM03.avi #../../videos/cut3.avi 这不用改
 output: output
 save_csv: false
 save_txt: True

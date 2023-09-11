@@ -47,7 +47,7 @@ class Tracker:
         self.catcher = lpr3.LicensePlateCatcher(detect_level=1)
         self.exit_frames = 175
 
-        
+    # TODO 这里source 路径需要修改
     def detect(self, source='/home/hyq/code/comp/dataset/prestige/H3V-贵A919BU.avi'):
         opt = self.opt
         out, source, yolo_weights, deep_sort_weights, show_vid, save_vid, save_txt, save_csv, imgsz, evaluate, half = \
@@ -187,6 +187,7 @@ class Tracker:
                     clss = torch.tensor(clss)
 
                     # NOTE DeepSort 模型推理
+                    # im0 每帧原始图像
                     outputs = deepsort.update(xywhs.cpu(), confs.cpu(), clss.cpu(), im0)
                     print(outputs)
                     # NOTE 检测车牌信息
