@@ -7,7 +7,8 @@ import math
 import numpy as np
 import torch
 import torch.nn as nn
-
+import sys
+sys.path.append("task_02\Vehicle-tracking\car_plot\infrastructure\yolov5")
 from models.common import Conv
 from utils.downloads import attempt_download
 

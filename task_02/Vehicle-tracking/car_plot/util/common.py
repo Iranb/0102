@@ -18,7 +18,7 @@ def str_to_list(str_list):
 
 
 def read_yml(path:str):
-  with open(path, 'r') as file:
+  with open(path, 'r', encoding='utf-8') as file:
       text = yaml.safe_load(file)
   return text
 
