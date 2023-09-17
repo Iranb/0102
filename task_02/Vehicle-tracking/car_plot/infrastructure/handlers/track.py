@@ -330,8 +330,9 @@ class Tracker:
 
         for car in cars:
             if tuple(car) not in sets:
-                car_and_license = car[0:4].copy().tolist()
-                car_and_license.extend(['空车牌'])
+                car_and_license = []
+                car_and_license.append(car[0:4].tolist())
+                car_and_license.append('空车牌')
                 car_and_licenses.append(car_and_license)
 
         return car_and_licenses
@@ -377,24 +378,10 @@ class Tracker:
             TODO  生成： 车牌号码（如是无牌车，采用“无牌车”字符）、车辆状态（驶入/占用/驶出/空位）
 
         """
-        """
-        数据形式result = 
-        [
-        [  # 第一帧
-            [[1193, 110, 2138, 878], '贵AE9M02', [1424, 706, 1612, 774]], 
-            [[21, 1248, 857, 2145], '贵A919BU', [1440, 1419, 1670, 1501]]
-        ], 
-        [  # 第二帧
-            [[1194, 111, 2139, 879], '贵AE9M02', [1425, 706, 1612, 774]],
-            [[22, 1249, 858, 2146], '贵A919BU', [1441, 1419, 1670, 1501]]
-        ]
-        ]
-
-        """
 
         out_path = './output/'
         f = open(out_path + 'text.txt', "a")
-        check = 10  # 被对比的两帧之间相差的帧数
+        check = 50  # 被对比的两帧之间相差的帧数
         occupy_area = 0.97  # 判断是否占用时的阈值
         out_area = 0.40  # 判断是否驶出的阈值
         empty_area = 0.05  # 判断是否是空位的阈值
@@ -433,7 +420,7 @@ class Tracker:
                         if intersection_area < area * empty_area:  # 空位
                             self.save_image(source, i, out_path + str(i) + '_空位_' + item[1] + '.jpg')
                             f.write(
-                                '帧数' + str(i) + 'plate:' + item[1] + '\tstatus:空位' + '\tcaptime:' + str(i / 25) + 's\n')
+                                '帧数' + str(i) + '\tplate:' + item[1] + '\tstatus:空位' + '\tcaptime:' + str(i / 25) + 's\n')
                             flag = True
                             break
                         elif intersection_area < area * out_area:  # 驶出
@@ -442,7 +429,7 @@ class Tracker:
                             leaving_list.append([box, license])
                             self.save_image(source, i, out_path + str(i) + '_驶出_' + item[1] + '.jpg')
                             f.write(
-                                '帧数' + str(i) + 'plate:' + item[1] + '\tstatus:驶出' + '\tcaptime:' + str(i / 25) + 's\n')
+                                '帧数' + str(i) + '\tplate:' + item[1] + '\tstatus:驶出' + '\tcaptime:' + str(i / 25) + 's\n')
                             flag = True
                             break
                 if flag:
@@ -468,7 +455,7 @@ class Tracker:
                             occupy_list.append([[x1, y1, x2, y2], item[1]])
                             self.save_image(source, i, out_path + str(i) + '_占用_' + item[1] + '.jpg')
                             f.write(
-                                '帧数' + str(i) + 'plate:' + item[1] + '\tstatus:占用' + '\tcaptime:' + str(i / 25) + 's\n')
+                                '帧数' + str(i) + '\tplate:' + item[1] + '\tstatus:占用' + '\tcaptime:' + str(i / 25) + 's\n')
                             flag = True
                             break
                 if flag:
@@ -477,7 +464,7 @@ class Tracker:
                 if item[1] not in license_list:
                     license_list.append(item[1])
                     self.save_image(source, i, out_path + str(i) + '_驶入_' + item[1] + '.jpg')
-                    f.write('帧数' + str(i) + 'plate:' + item[1] + '\tstatus:驶入' + '\tcaptime:' + str(i / 25) + 's\n')
+                    f.write('帧数' + str(i) + '\tplate:' + item[1] + '\tstatus:驶入' + '\tcaptime:' + str(i / 25) + 's\n')
         f.close()
         return None
 
