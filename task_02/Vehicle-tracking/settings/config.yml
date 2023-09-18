@@ -5,7 +5,7 @@ config_deepsort: task_02\\Vehicle-tracking\\settings\\deep_sort.yaml
 deep_sort_weights: task_02\\Vehicle-tracking\\models\\ckpt.t7
 
 #yolo
-yolo_weights: task_02\\Vehicle-tracking\\models\\yolov5s.pt
+yolo_weights: task_02\Vehicle-tracking\models\yolov5s.pt
 agnostic_nms: false
 augment: false
 classes: [1, 2, 3, 5, 7]

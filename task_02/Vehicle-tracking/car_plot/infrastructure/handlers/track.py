@@ -3,6 +3,7 @@
 import os
 import warnings
 import copy
+import glob
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
@@ -26,7 +27,7 @@ from infrastructure.yolov5.utils.plots import Annotator, colors
 from infrastructure.deep_sort_pytorch.utils.parser import get_config
 from infrastructure.deep_sort_pytorch.deep_sort import DeepSort
 
-from util.common import  read_yml, extract_xywh_hog
+from util.common import  read_yml, extract_xywh_hog, get_IOU_xyxy
 from util.OPT_config import OPT
 from infrastructure.helper.zone_drawer_helper import ZoneDrawerHelper
 from threading import Thread
@@ -49,11 +50,11 @@ class Tracker:
         self.catcher = lpr3.LicensePlateCatcher(detect_level=1)
         self.exit_frames = 175
 
-    # TODO 这里source 路径需要修改(已修改)
-    def detect(self, source='H4V-贵A1ZM03.avi'):
+    # TODO 
+    def detect(self, set_source='dataset\\2\\H4V-贵A1ZM03.avi'):
         opt = self.opt
         out, source, yolo_weights, deep_sort_weights, show_vid, save_vid, save_txt, save_csv, imgsz, evaluate, half = \
-            opt.output, opt.source, opt.yolo_weights, opt.deep_sort_weights, opt.show_vid, opt.save_vid, \
+            opt.output, set_source, opt.yolo_weights, opt.deep_sort_weights, opt.show_vid, opt.save_vid, \
                 opt.save_txt, opt.save_csv, opt.imgsz, opt.evaluate, opt.half
         zone_drawer = ZoneDrawerHelper()
         upper_ratio = opt.upper_ratio
@@ -119,7 +120,7 @@ class Tracker:
         vehicle_infos = {} # id:{start in view, exit view, type }
         list_vehicles = set()  #LIST CONTAIN vehicles HAS APPEARED, IF THAT VEHICLE HAD BEEN UPLOADED TO DB, REMOVE THAT VEHICLE
         
-
+        site_last = [0,0,0,0,0] # 最后一个是帧位
         for frame_idx, (path, img, im0s, vid_cap, s) in enumerate(dataset):
             t1 = time_sync()
             img = torch.from_numpy(img).to(device)
@@ -156,7 +157,6 @@ class Tracker:
                 save_path = str(Path(out) / Path(p).name)
 
                 annotator = Annotator(im0, line_width=2, pil=not ascii)
-
                 if det is not None and len(det):
                     # Rescale boxes from img_size to im0 size
                     det[:, :4] = scale_coords(
@@ -192,18 +192,18 @@ class Tracker:
                     # NOTE DeepSort 模型推理
                     # im0 每帧原始图像
                     outputs = deepsort.update(xywhs.cpu(), confs.cpu(), clss.cpu(), im0)
-                    print(outputs)
+                    # print(outputs)
                     # NOTE 检测车牌信息
                     licenses = self.detect_car_license(im0s)
-                    print(licenses)
-                    print("----------------------------------------------")
+                    # print(licenses)
                     # NOTE 车与车牌对应起来
-                    if outputs != []:
+                    if len(outputs) != 0:
                         car_and_licenses = self.assign_license_to_vehicle(licenses, outputs)
-                        print(car_and_licenses)
+                        # print(car_and_licenses)
+                        
+
                     else:
                         car_and_licenses = None
-                    print("----------------------------------------------")
                     current_frame = {}
                     current_frame['time'] = datetime.now()
                     current_frame['frame'] = frame_idx
@@ -266,7 +266,7 @@ class Tracker:
             
 
                         vehicles_count, IDs_vehicles = current_frame['n_vehicles_at_time'], current_frame['IDs_vehicles']                            
-                        LOGGER.info("{}: {} vehicles".format(s, vehicles_count))
+                        # LOGGER.info("{}: {} vehicles".format(s, vehicles_count))
 
                         if not np.isnan(np.sum(IDs_vehicles)):
                             list_vehicles.update(list(IDs_vehicles)) 
@@ -300,8 +300,8 @@ class Tracker:
 
             previous_frame = current_frame
             frame_list.append(current_frame)
-            if frame_idx > 300:
-                break
+            # if frame_idx > 1000:
+            #     break
 
         self.generate_results(frame_list, source)
         print(vehicle_infos)
@@ -402,7 +402,9 @@ class Tracker:
         
         """
 
-        out_path = './output/'
+        out_path = './output/'+ os.path.basename(source)[:-4] + '/'
+        if not os.path.exists(out_path):
+            os.makedirs(out_path)
         f = open(out_path + 'text.txt', "a")
         check = 10  # 被对比的两帧之间相差的帧数
         occupy_area = 0.97  # 判断是否占用时的阈值
@@ -413,6 +415,8 @@ class Tracker:
         leaving_list = [] # 进入驶出状态的车的车牌号和占用状态的car_box
         occupy_list = []  # 占用时对应的车牌和car_box
 
+        res_pic_tosave = [] # [帧位，车牌号，状态]
+
         for i in range(check, len(list_vehicles), check):
             if list_vehicles[i-check] == -1 or list_vehicles[i-check]['result'] == None:
                 continue
@@ -420,7 +424,7 @@ class Tracker:
                 continue
             previous_frame = list_vehicles[i - check]
             current_frame = list_vehicles[i]
-            print(str(i/check))
+            # print(str(i/25))    # 25指每秒25帧
             for item in current_frame['result']:
                 flag = False
                 x1, y1, x2, y2 = item[0][0], item[0][1], item[0][2], item[0][3]
@@ -441,16 +445,18 @@ class Tracker:
                         intersection_area = intersection_width * intersection_height
 
                         if intersection_area < area * empty_area:  # 空位
-                            self.save_image(source, i, out_path + str(i)+'_空位_' + item[1] + '.jpg')
-                            f.write('帧数'+ str(i)+'plate:' + item[1] + '\tstatus:空位' + '\tcaptime:' + str(i / check) + 's\n')
+                            # self.save_image(source, i, out_path + str(i)+'_空位_' + item[1] + '.jpg')
+                            # f.write('帧位'+ str(i)+'\tplate:' + item[1] + '\tstatus:空位' + '\tcaptime:' + str(i / 25) + 's\n')
+                            res_pic_tosave.append([i,item[1],'空位'])
                             flag = True
                             break
                         elif intersection_area < area * out_area:  # 驶出
                             if [box, license] in leaving_list:  #正处于驶出状态但又未达到空位状态
                                 continue
                             leaving_list.append([box, license])
-                            self.save_image(source, i, out_path + str(i)+'_驶出_' + item[1] + '.jpg')
-                            f.write('帧数'+ str(i)+'plate:' + item[1] + '\tstatus:驶出' + '\tcaptime:' + str(i / check) + 's\n')
+                            # self.save_image(source, i, out_path + str(i)+'_驶出_' + item[1] + '.jpg')
+                            # f.write('帧位'+ str(i)+'\tplate:' + item[1] + '\tstatus:驶出' + '\tcaptime:' + str(i / 25) + 's\n')
+                            res_pic_tosave.append([i,item[1],'驶出'])
                             flag = True
                             break
                 if flag:
@@ -474,8 +480,9 @@ class Tracker:
 
                         if intersection_area > area * occupy_area and not any(item[1] == row[1] for row in occupy_list):
                             occupy_list.append([[x1, y1, x2, y2], item[1]])
-                            self.save_image(source, i, out_path + str(i)+'_占用_' + item[1] + '.jpg')
-                            f.write('帧数'+ str(i)+'plate:' + item[1] + '\tstatus:占用' + '\tcaptime:' + str(i / 25) + 's\n')
+                            # self.save_image(source, i, out_path + str(i)+'_占用_' + item[1] + '.jpg')
+                            # f.write('帧位'+ str(i)+'\tplate:' + item[1] + '\tstatus:占用' + '\tcaptime:' + str(i / 25) + 's\n')
+                            res_pic_tosave.append([i,item[1],'占用'])
                             flag = True
                             break
                 if flag:
@@ -483,8 +490,37 @@ class Tracker:
                 # 驶入
                 if item[1] not in license_list:
                     license_list.append(item[1])
-                    self.save_image(source, i, out_path + str(i)+'_驶入_' + item[1] + '.jpg')
-                    f.write('帧数'+ str(i)+'plate:' + item[1] + '\tstatus:驶入' + '\tcaptime:' + str(i/check) + 's\n')
+                    # self.save_image(source, i, out_path + str(i)+'_驶入_' + item[1] + '.jpg')
+                    # f.write('帧位'+ str(i)+'\tplate:' + item[1] + '\tstatus:驶入' + '\tcaptime:' + str(i/25) + 's\n')
+                    res_pic_tosave.append([i,item[1],'驶入'])
+        # 后处理
+        plates_detect = set([_[1] for _ in res_pic_tosave]) # 检测出的车牌
+        plates_output = []  # 筛选后的车牌
+        for plate in plates_detect:
+            flag=[0,0,0,0]
+            for _, plate2, state in res_pic_tosave:
+                if plate2 != plate:
+                    continue
+                elif state=='驶入':
+                    flag[0] = 1
+                elif state=='占用':
+                    flag[1] = 1
+                elif state=='驶出':
+                    flag[2] = 1
+                else:   # 空位
+                    flag[3] = 1
+            if sum(flag) == 4:
+                plates_output.append(plate)
+        print('初步检测出的车:')
+        print(plates_detect)
+        print('最终选定输出的车:')
+        print(plates_output)
+        for frame, plate, state in res_pic_tosave:
+            if plate not in plates_output:
+                continue
+            else:
+                f.write('帧位'+str(frame)+'\tplate:'+plate+'\tstatus:'+state+'\tcaptime:'+str(frame/25) + 's\n')
+                self.save_image(source, frame, out_path+str(frame)+'_'+state+'_'+plate+'.jpg')            
         f.close()
         return None
 
@@ -510,5 +546,9 @@ if __name__ == '__main__':
     tracker = Tracker(config_path='task_02/Vehicle-tracking/settings/config.yml')
     
     with torch.no_grad():
-       list_vehicles =  tracker.detect()
+        # list_vehicles =  tracker.detect()
+        dataset_path = "dataset/2"
+        file_paths = glob.glob(os.path.join(dataset_path, "*"))
+        for video_path in file_paths[3:]:
+            list_vehicles =  tracker.detect(video_path)
 

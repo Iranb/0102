@@ -86,7 +86,21 @@ def write_csv(csv_path:str, list_ouputs:dict, list_frontal_faces:dict, fps:int) 
           f.write(str_array(bb_pp)+";")
           f.write(str_array(bb_face)+"\n")
 
-
-
-
-
+def get_IOU_xyxy(site1, site2):
+    # 计算框一的面积
+    box1_area = (site1[2] - site1[0]) * (site1[3] - site1[1])
+    # 计算框二的面积
+    box2_area = (site2[2] - site2[0]) * (site2[3] - site2[1])
+    # 计算交集框的左上角和右下角坐标
+    intersection_left = max(site1[0], site2[0])
+    intersection_top = max(site1[1], site2[1])
+    intersection_right = min(site1[2], site2[2])
+    intersection_bottom = min(site1[3], site2[3])
+    # 计算交集框的面积
+    intersection_area = max(0, intersection_right - intersection_left) * max(0, intersection_bottom - intersection_top)
+    # 计算并集框的面积
+    union_area = box1_area + box2_area - intersection_area
+    # 计算IoU
+    iou = intersection_area / union_area
+    # 打印IoU
+    return iou
