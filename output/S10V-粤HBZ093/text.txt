@@ -1,0 +1,4 @@
+帧位20	plate:空车牌	status:驶入	captime:0.8s
+帧位240	plate:空车牌	status:占用	captime:9.6s
+帧位240	plate:空车牌	status:驶出	captime:9.6s
+帧位240	plate:空车牌	status:空位	captime:9.6s

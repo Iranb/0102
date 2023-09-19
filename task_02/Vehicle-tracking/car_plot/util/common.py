@@ -2,6 +2,8 @@ import yaml
 import numpy as np
 from typing import Union
 import pandas as pd
+import math
+import pickle
 
 def str_array (array: np.ndarray):
   output_string = ""
@@ -104,3 +106,23 @@ def get_IOU_xyxy(site1, site2):
     iou = intersection_area / union_area
     # 打印IoU
     return iou
+
+def get_dist_coefficient(site1, site2):
+   x1 = (site1[0] + site1[2]) / 2
+   y1 = (site1[1] + site1[3]) / 2
+   x2 = (site2[0] + site2[2]) / 2
+   y2 = (site2[1] + site2[3]) / 2
+   dist = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+   box1_area = (site1[2] - site1[0]) * (site1[3] - site1[1])
+   box2_area = (site2[2] - site2[0]) * (site2[3] - site2[1])
+   len_aver = math.sqrt((box1_area + box2_area)/2)
+   return dist / len_aver
+
+def save_list_to_file(data_list, file_path):
+    with open(file_path, 'wb') as file:
+        pickle.dump(data_list, file)
+
+def load_list_from_file(file_path):
+    with open(file_path, 'rb') as file:
+        data_list = pickle.load(file)
+        return data_list

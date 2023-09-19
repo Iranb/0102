@@ -1,0 +1,4 @@
+帧位130	plate:粤TA733W	status:驶入	captime:5.2s
+帧位760	plate:粤TA733W	status:占用	captime:30.4s
+帧位6190	plate:粤TA733W	status:驶出	captime:247.6s
+帧位6190	plate:粤TA733W	status:空位	captime:247.6s

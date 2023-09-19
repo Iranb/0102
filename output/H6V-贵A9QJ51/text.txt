@@ -1,0 +1,4 @@
+帧位120	plate:贵A9QJ51	status:驶入	captime:4.8s
+帧位490	plate:贵A9QJ51	status:占用	captime:19.6s
+帧位1970	plate:贵A9QJ51	status:驶出	captime:78.8s
+帧位2717	plate:贵A9QJ51	status:空位	captime:108.68s

@@ -1,0 +1,4 @@
+帧位120	plate:粤B0L1E6	status:驶入	captime:4.8s
+帧位1560	plate:粤B0L1E6	status:占用	captime:62.4s
+帧位3790	plate:粤B0L1E6	status:驶出	captime:151.6s
+帧位3840	plate:粤B0L1E6	status:空位	captime:153.6s

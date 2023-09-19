@@ -6,5 +6,6 @@ task_02/Vehicle-tracking/videos
 videos/
 *.avigit 
 task_02/Vehicle-tracking/car_plot/output/
-output/
+output/*.avi
+output/*.pkl
 output_saved/

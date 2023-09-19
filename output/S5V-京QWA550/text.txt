@@ -1,0 +1,4 @@
+帧位310	plate:京QWA550	status:驶入	captime:12.4s
+帧位490	plate:京QWA550	status:占用	captime:19.6s
+帧位1380	plate:京QWA550	status:驶出	captime:55.2s
+帧位1592	plate:京QWA550	status:空位	captime:63.68s
