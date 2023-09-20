@@ -19,3 +19,54 @@
 （1）汽车车牌被遮挡，会空缺一段数据。
 
 （2）即使未被遮挡，汽车也未被检测出来，可能是目标检测模型的问题。
+
+
+### 添加了frame_gap
+
+    （1）每隔 frame_gap 帧进行视频车辆检测, 可在 handlar/track.py line 104 修改， 默认 gap 数值 为 3
+
+```
+dataset = LoadImages(source, img_size=imgsz, stride=stride, auto=pt and not jit, frame_gap=3)
+```
+
+### 添加低光判定逻辑 
+
+    （1）在低光照时对图像补光， 在 car_plot/util/common.py line 132 增加了图像在暗光场景中的判断逻辑
+
+    （2）增加暗光照图像自适应增强逻辑，参考 car_plot/util/hdr.py
+
+
+### TODO 
+
+    （1）基于 box 的轨迹估计修改为基于 中心点 的估计，
+
+
+## 0920 TODO
+
+    (1)  视频帧 -> [box(x1, y1, x2, y2) cls(5 or 6), track_id]
+    (2) Set(
+        {track_车牌号（可缺失）: 
+            [box box(x1, y1, x2, y2)]
+            [box box(x1, y1, x2, y2)]
+            [box box(x1, y1, x2, y2)]
+            }
+    )
+
+    (3)  判断车是否停进车库且被遮挡
+    Set_1（停车前）(
+        {track_车牌号（A12345）: 
+            [box box(x1, y1, x2, y2)]
+            [box box(x1, y1, x2, y2)]
+            [box box(x1, y1, x2, y2)]
+            }
+    )
+
+    Set_2 （驶出）(
+        {track_车牌号（A12345）: 
+            [box box(x1, y1, x2, y2)]
+            [box box(x1, y1, x2, y2)]
+            [box box(x1, y1, x2, y2)]
+            }
+    )
+
+    (4) 删除 Tracks 中 Truck 类别的轨迹
