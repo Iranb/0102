@@ -4,6 +4,7 @@ from typing import Union
 import pandas as pd
 import math
 import pickle
+import cv2
 
 def str_array (array: np.ndarray):
   output_string = ""
@@ -126,3 +127,14 @@ def load_list_from_file(file_path):
     with open(file_path, 'rb') as file:
         data_list = pickle.load(file)
         return data_list
+    
+
+def is_dark(img, threshold=100):
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # 计算灰度图像的平均亮度
+    average_brightness = cv2.mean(gray)[0]
+    # 判断亮度是否低于阈值
+    if average_brightness < threshold:
+        return True
+    else:
+        return False

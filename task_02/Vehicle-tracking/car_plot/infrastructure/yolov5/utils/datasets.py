@@ -158,7 +158,7 @@ class _RepeatSampler:
 
 class LoadImages:
     # YOLOv5 image/video dataloader, i.e. `python detect.py --source image.jpg/vid.mp4`
-    def __init__(self, path, img_size=640, stride=32, auto=True):
+    def __init__(self, path, img_size=640, stride=32, auto=True, frame_gap=1):
         p = str(Path(path).resolve())  # os-agnostic absolute path
         if '*' in p:
             files = sorted(glob.glob(p, recursive=True))  # glob
@@ -180,6 +180,7 @@ class LoadImages:
         self.video_flag = [False] * ni + [True] * nv
         self.mode = 'image'
         self.auto = auto
+        self.frame_gap = frame_gap
         if any(videos):
             self.new_video(videos[0])  # new video
         else:
@@ -201,6 +202,7 @@ class LoadImages:
             self.mode = 'video'
             ret_val, img0 = self.cap.read()
             while not ret_val:
+                print(ret_val)
                 self.count += 1
                 self.cap.release()
                 if self.count == self.nf:  # last video
@@ -209,14 +211,13 @@ class LoadImages:
                     path = self.files[self.count]
                     self.new_video(path)
                     ret_val, img0 = self.cap.read()
-
             self.frame += 1
             s = f'video {self.count + 1}/{self.nf} ({self.frame}/{self.frames}) {path}: '
-
         else:
             # Read image
-            self.count += 1
-            img0 = cv2.imread(path)  # BGR
+            self.count += self.frame_gap
+            for i in range(self.frame_gap):
+                img0 = cv2.imread(path)  # BGR
             assert img0 is not None, f'Image Not Found {path}'
             s = f'image {self.count}/{self.nf} {path}: '
 

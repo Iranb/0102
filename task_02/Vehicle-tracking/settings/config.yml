@@ -1,11 +1,11 @@
 device: 'cuda:0'
 
 #deepsort
-config_deepsort: task_02\\Vehicle-tracking\\settings\\deep_sort.yaml
-deep_sort_weights: task_02\\Vehicle-tracking\\models\\ckpt.t7
+config_deepsort: /home/hyq/code/comp/0102/task_02/Vehicle-tracking/settings/deep_sort.yaml
+deep_sort_weights: /home/hyq/code/comp/0102/task_02/Vehicle-tracking/modelsckpt.t7
 
 #yolo
-yolo_weights: task_02\Vehicle-tracking\models\yolov5s.pt
+yolo_weights: /home/hyq/code/comp/0102/task_02/Vehicle-tracking/models/yolov5s.pt
 agnostic_nms: false
 augment: false
 classes: [1, 2, 3, 5, 7]
@@ -21,7 +21,7 @@ visualize: false
 
 #in-out
 fourcc: mp4v
-source: dataset\2\H4V-贵A1ZM03.avi #../../videos/cut3.avi 这不用改
+source: /home/hyq/code/comp/dataset/prestige/H4V-贵A1ZM03.avi #../../videos/cut3.avi 这不用改
 output: output
 save_csv: false
 save_txt: True

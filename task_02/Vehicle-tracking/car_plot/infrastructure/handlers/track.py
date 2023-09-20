@@ -4,6 +4,7 @@ import os
 import warnings
 import copy
 import glob
+import pathlib
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
@@ -13,6 +14,7 @@ os.environ["NUMEXPR_NUM_THREADS"] = "1"
 
 import sys
 import math
+import torchvision
 # sys.path.insert(0, './yolov5')
 lib_path = os.path.abspath(os.path.join('infrastructure', 'yolov5'))
 sys.path.append(lib_path)
@@ -29,8 +31,6 @@ from infrastructure.deep_sort_pytorch.deep_sort import DeepSort
 
 from util.common import  *
 from util.OPT_config import OPT
-from infrastructure.helper.zone_drawer_helper import ZoneDrawerHelper
-from threading import Thread
 from datetime import timedelta, datetime
 from pathlib import Path
 import cv2
@@ -51,19 +51,18 @@ class Tracker:
         self.exit_frames = 175
 
     # TODO 
-    def detect(self, set_source='dataset\\2\\H4V-贵A1ZM03.avi'):
-        out_path = './output/'+ os.path.basename(set_source)[:-4] + '/'
+    def detect(self, set_source='/home/hyq/code/comp/dataset/prestige/H8V-陕AE8R40.avi'):
+        out_path = Path('./output/') / Path(set_source).stem
         if not os.path.exists(out_path):
             os.makedirs(out_path)
-        if os.path.isfile(out_path + '/frame_list.pkl'):
-            frame_list = load_list_from_file(out_path + '/frame_list.pkl')
+        if os.path.isfile(str(out_path / 'frame_list.pkl')):
+            frame_list = load_list_from_file(str(out_path / 'frame_list.pkl'))
             self.generate_results(frame_list, set_source)
             return
         opt = self.opt
         out, source, yolo_weights, deep_sort_weights, show_vid, save_vid, save_txt, save_csv, imgsz, evaluate, half = \
             opt.output, set_source, opt.yolo_weights, opt.deep_sort_weights, opt.show_vid, opt.save_vid, \
                 opt.save_txt, opt.save_csv, opt.imgsz, opt.evaluate, opt.half
-        zone_drawer = ZoneDrawerHelper()
         upper_ratio = opt.upper_ratio
         lower_ratio = opt.lower_ratio
 
@@ -103,7 +102,7 @@ class Tracker:
         if show_vid:
             show_vid = check_imshow()
 
-        dataset = LoadImages(source, img_size=imgsz, stride=stride, auto=pt and not jit)
+        dataset = LoadImages(source, img_size=imgsz, stride=stride, auto=pt and not jit, frame_gap=1)
         bs = 1  # batch_size
         vid_path, vid_writer = [None] * bs, [None] * bs
 
@@ -114,9 +113,6 @@ class Tracker:
         save_path = str(Path(out))
         # extract what is in between the last '/' and last '.'
         txt_file_name = source.split('/')[-1].split('.')[0]
-        txt_path = str(Path(out)) + '/' + txt_file_name + '.txt'
-        csv_path = str(Path(out)) + '/' + txt_file_name + '.csv'        
-        
 
         if pt and device.type != 'cpu':
             model(torch.zeros(1, 3, *imgsz).to(device).type_as(next(model.model.parameters())))  # warmup
@@ -129,14 +125,22 @@ class Tracker:
         
         site_last = [0,0,0,0,0] # 最后一个是帧位
         for frame_idx, (path, img, im0s, vid_cap, s) in enumerate(dataset):
-            if frame_idx % 100 == 0:
-                print(source[-11:-4]+": "+ str(frame_idx)+"/"+ str(dataset.frames))
+            # if frame_idx % 100 == 0:
+            #     print(source[-11:-4]+": "+ str(frame_idx)+"/"+ str(dataset.frames))
             t1 = time_sync()
             img = torch.from_numpy(img).to(device)
             img = img.half() if half else img.float()  # uint8 to fp16/32
             img /= 255.0  # 0 - 255 to 0.0 - 1.0
             frame_height = im0s.shape[0]
             frame_width = im0s.shape[1]
+
+            # # resize 
+            # print(frame_height)
+            # print(frame_width)
+            # exit()
+            print(img.size())
+            height = 1080
+            width = 1920
             upper_line = int(frame_height*upper_ratio)
             lower_line = int(frame_height*lower_ratio)
             middle_line = frame_width//2
@@ -344,7 +348,7 @@ class Tracker:
             # if frame_idx > 300:
             #     break
         vid_writer.release()    # 不运行这一句则输出视频未关闭，后面也不能正常使用
-        save_list_to_file(frame_list, out_path + '/frame_list.pkl')
+        save_list_to_file(frame_list, out_path / 'frame_list.pkl')
         self.generate_results(frame_list, source)
 
 
