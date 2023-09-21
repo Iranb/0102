@@ -4,6 +4,7 @@ import os
 import warnings
 import copy
 import glob
+import tqdm
 import pathlib
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 os.environ["OMP_NUM_THREADS"] = "1"
@@ -63,8 +64,6 @@ class Tracker:
         out, source, yolo_weights, deep_sort_weights, show_vid, save_vid, save_txt, save_csv, imgsz, evaluate, half = \
             opt.output, set_source, opt.yolo_weights, opt.deep_sort_weights, opt.show_vid, opt.save_vid, \
                 opt.save_txt, opt.save_csv, opt.imgsz, opt.evaluate, opt.half
-        upper_ratio = opt.upper_ratio
-        lower_ratio = opt.lower_ratio
 
         # initialize deepsort
         cfg = get_config()
@@ -102,7 +101,7 @@ class Tracker:
         if show_vid:
             show_vid = check_imshow()
 
-        dataset = LoadImages(source, img_size=imgsz, stride=stride, auto=pt and not jit, frame_gap=1)
+        dataset = LoadImages(source, img_size=imgsz, stride=stride, auto=pt and not jit, frame_gap=10)
         bs = 1  # batch_size
         vid_path, vid_writer = [None] * bs, [None] * bs
 
@@ -124,27 +123,14 @@ class Tracker:
         list_vehicles = set()  #LIST CONTAIN vehicles HAS APPEARED, IF THAT VEHICLE HAD BEEN UPLOADED TO DB, REMOVE THAT VEHICLE
         
         site_last = [0,0,0,0,0] # 最后一个是帧位
-        for frame_idx, (path, img, im0s, vid_cap, s) in enumerate(dataset):
-            # if frame_idx % 100 == 0:
-            #     print(source[-11:-4]+": "+ str(frame_idx)+"/"+ str(dataset.frames))
+        for frame_idx, (path, img, im0s, vid_cap, s) in tqdm.tqdm(enumerate(dataset)):
             t1 = time_sync()
             img = torch.from_numpy(img).to(device)
             img = img.half() if half else img.float()  # uint8 to fp16/32
             img /= 255.0  # 0 - 255 to 0.0 - 1.0
             frame_height = im0s.shape[0]
             frame_width = im0s.shape[1]
-
-            # # resize 
-            # print(frame_height)
-            # print(frame_width)
-            # exit()
-            print(img.size())
-            height = 1080
-            width = 1920
-            upper_line = int(frame_height*upper_ratio)
-            lower_line = int(frame_height*lower_ratio)
-            middle_line = frame_width//2
-
+            middle_line = frame_width // 2
             if img.ndimension() == 3:
                 img = img.unsqueeze(0)
             t2 = time_sync()
@@ -190,10 +176,6 @@ class Tracker:
                     clss = np.asarray(clss.cpu())
 
                     row_indexes_delete = []
-                    for i, cord in enumerate(xywhs):
-                        # if (cord[1]+cord[3])>lower_line or cord[1]<upper_line:
-                        if (cord[1]+cord[3])<upper_line or cord[1]>lower_line:
-                            row_indexes_delete.append(i)
                     xywhs = np.delete(xywhs, row_indexes_delete, axis=0)
                     confs = np.delete(confs, row_indexes_delete)
                     clss = np.delete(clss, row_indexes_delete)

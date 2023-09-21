@@ -24,9 +24,6 @@ class OPT:
         self.classes = config['classes']
         self.agnostic_nms = config['agnostic_nms']
         self.max_det = config['max_det']
-        self.upload_db = config['upload_db']
-        self.upper_ratio = config['upper_ratio']
-        self.lower_ratio = config['lower_ratio']
 
 
 
