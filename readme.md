@@ -70,3 +70,8 @@ dataset = LoadImages(source, img_size=imgsz, stride=stride, auto=pt and not jit,
     )
 
     (4) 删除 Tracks 中 Truck 类别的轨迹
+
+    (5) 可选择的模型列表
+        - https://github.com/ultralytics/yolov5/blob/master/README.zh-CN.md
+        - 经过测试，可用的模型包含 YOLOv5n， YOLOv5s， YOLOv5m， YOLOv5l， YOLOv5x
+        - 下载模型后，在setting/config.yml 中替换checkpoint 路径 即可
