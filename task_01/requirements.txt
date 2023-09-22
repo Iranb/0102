@@ -1,2 +1,4 @@
 more-itertools
 hyperlpr3
+onnxruntime-gpu==1.8.1
+onnxruntime==1.8.1
