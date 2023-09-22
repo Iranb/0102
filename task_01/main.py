@@ -10,8 +10,8 @@ from PIL import ImageFont, ImageDraw, Image
 
 class CarLicenseDetector(object):
 
-    def __init__(self) -> None:
-        self.catcher = lpr3.LicensePlateCatcher(detect_level=1)
+    def __init__(self, detect_level=1) -> None:
+        self.catcher = lpr3.LicensePlateCatcher(detect_level=detect_level)
 
     def get_prediction(self, image_data, img_data):
         prediction = self.catcher(img_data)
@@ -98,5 +98,12 @@ class CarLicenseDetector(object):
 
 if __name__ == '__main__':
     detector = CarLicenseDetector()
-    result = detector.detect_single('../../dataset/base/单黄/_单行黄牌_y_鄂H0C650_2018032311021843417605_.jpg')
-    print(result)
+    # result = detector.detect_single('../../dataset/base/单黄/_单行黄牌_y_鄂H0C650_2018032311021843417605_.jpg')
+    # print(result)
+
+    # 检测一整个文件夹的图像
+    import pathlib
+    import tqdm
+    image_folder = "../data/base"
+    for img in tqdm.tqdm(pathlib.Path(image_folder).rglob("*.jpg")):
+        result = detector.detect_single(str(img))
